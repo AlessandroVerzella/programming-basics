@@ -1,45 +1,57 @@
 const { readFile } = require('fs/promises');
 
-let filePath = './sample_file.txt';
+const filePath = './sample_file.txt';
 
-readFile(filePath)
-    .then((data) => {
-        const allTheWordsFile = data
-            .toString()
-            .replace(/[0-9.,\/#!$%\^&\*;:{}=\-_`~(),' ', \r\n]/g, ' ') // Remove all characters that are not letters
-            .split(' ')
-            .filter((element) => element !== ''); // Don't consider the empty space
+const getWord = (allTheWordsFile) => {
+    let word = '';
+    while (word.length < 3 || word.length > 7) {
+        const randomIndex = Math.floor(Math.random() * allTheWordsFile.length);
+        word = allTheWordsFile[randomIndex];
+        // console.log(word);
+    }
+    // console.log(word.length);
+    // return word;
+    return word.charAt(0).toUpperCase() + word.slice(1);
+};
 
-        // Pick two random words from the file
-        const firstWord =
-            allTheWordsFile[Math.floor(Math.random() * allTheWordsFile.length)];
-        const secondWord =
-            allTheWordsFile[Math.floor(Math.random() * allTheWordsFile.length)];
+const getPassword = (allTheWordsFile, firstWord) => {
+    // Io ottengo una password, che ha dei caratteri da 3 a 7. Firstword.length.
+    const firstWordLength = firstWord.length;
+    // So che la lunghezza della password generata deve essere compresa tra 8 e 10;
+    const minLength = 8;
+    const maxLength = 10;
+    // Genero reiterando la seconda password e vedere se, la somma con firstWordLength è comprezza tra le due lunghezze
+    let sumPassword = 0;
+    let secondWord = 0;
+    while (sumPassword < minLength || sumPassword > maxLength) {
+        secondWord = getWord(allTheWordsFile);
+        const secondWordLength = secondWord.length;
+        sumPassword = firstWordLength + secondWord.length;
+    }
 
-        // Capitalise the first letter
-        const firstWordPassword =
-            firstWord.charAt(0).toUpperCase() + firstWord.slice(1);
-        const secondWordPassword =
-            secondWord.charAt(0).toUpperCase() + secondWord.slice(1);
+    return firstWord + secondWord;
+};
 
-        // Password with the two random words
-        const twoWordRandomPassword =
-            firstWordPassword.concat(secondWordPassword);
+const generatePasswordFromFile = async (filePath) => {
+    const data = await readFile(filePath);
+    const allTheWordsFile = data
+        .toString()
+        .replace(/[0-9.,\/#!$%\^&\*;:{}=\-_`~(),' ', \r\n]/g, ' ') // Remove all characters that are not letters
+        .split(' ')
+        .filter((element) => element !== '');
+    // readFile(filePath)
+    // .then((data) => {
+    // Don't consider the empty space
 
-        // Check the conditions
-        if (
-            firstWordPassword.length >= 3 &&
-            firstWordPassword.length <= 7 &&
-            secondWordPassword.length >= 3 &&
-            secondWordPassword.length <= 7 &&
-            twoWordRandomPassword.length >= 8 &&
-            twoWordRandomPassword.length <= 10
-        ) {
-            console.log(`The password is ${twoWordRandomPassword}`);
-        } else {
-            console.log('Password non valida');
-        }
-    })
-    .catch((error) => {
-        console.log('The program is unable to open the file you indicated');
-    });
+    // Pick two random words from the file
+
+    const firstWord = getWord(allTheWordsFile);
+    // console.log(firstWord);
+    const twoWordRandomPassword = getPassword(allTheWordsFile, firstWord);
+    return twoWordRandomPassword;
+};
+
+generatePasswordFromFile(filePath)
+    .then((password) => console.log(password))
+    .catch((error) => console.log('Errore'));
+// const password = await generatePasswordFromFile(filePath);
